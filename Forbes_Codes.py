@@ -17,6 +17,8 @@ from selenium import webdriver
 
 
 
+
+
 # Set up Chrome options for headless mode
 options = Options()
 options.add_argument("--headless")
@@ -24,7 +26,8 @@ options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 
 # Initialize WebDriver with headless options
-driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
 url = 'https://www.forbes.com/billionaires/'
 driver.get(url)
 
