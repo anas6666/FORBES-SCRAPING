@@ -12,8 +12,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.chrome.options import Options
-import boto3
-from io import StringIO  # To handle CSV buffer for S3 upload
 
 # Set up Chrome options for headless mode
 options = Options()
@@ -91,23 +89,5 @@ df = pd.DataFrame(profiles_data)
 csv_file_name = "billionaires_data.csv"
 df.to_csv(csv_file_name, index=False)
 
-# Upload the CSV to S3
-s3_bucket_name = 'forbesrawdata'  # Replace with your bucket name
-s3_key = 'TEST1.csv'  # Replace with the desired S3 key (file name in S3)
-
-# Initialize a session using your AWS credentials
-s3 = boto3.resource('s3')
-
-# Convert DataFrame to a CSV buffer
-csv_buffer = StringIO()
-df.to_csv(csv_buffer, index=False)
-
-# Upload the CSV from the buffer to S3
-try:
-    s3.Bucket(s3_bucket_name).put_object(Key=s3_key, Body=csv_buffer.getvalue())
-    print(f"File successfully uploaded to S3 bucket '{s3_bucket_name}' with key '{s3_key}'.")
-except Exception as e:
-    print(f"Failed to upload file to S3: {e}")
-
 driver.quit()
-print("Scraping complete. Data saved locally and uploaded to S3.")
+print("Scraping complete. Data saved locally.")
