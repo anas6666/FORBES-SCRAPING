@@ -1,0 +1,93 @@
+import pandas as pd
+import numpy as np
+import requests
+import re
+from bs4 import BeautifulSoup as bs
+import time
+from selenium import webdriver
+from datetime import datetime 
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+from selenium.webdriver.chrome.options import Options
+
+# Set up Chrome options for headless mode
+options = Options()
+options.add_argument("--headless")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+
+# Initialize WebDriver with headless options
+driver = webdriver.Chrome(options=options)
+url = 'https://www.forbes.com/billionaires/'
+driver.get(url)
+
+time.sleep(5)  # Allow time for the page to load
+
+try:
+    first_cell = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, 'FULL PROFILE'))
+    )
+    first_cell.click()
+except NoSuchElementException:
+    print("FULL PROFILE button not found.")
+    driver.quit()
+
+driver.switch_to.window(driver.window_handles[-1])
+
+profiles_data = []
+
+# Set a counter for the number of times to click "NEXT"
+max_clicks = 10
+click_count = 0
+
+while click_count < max_clicks:
+    try:
+        nextt = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, 'NEXT'))
+        )
+        nextt.click()
+        
+        click_count += 1
+        time.sleep(2)  # Adjust based on page load speed
+        
+        html = driver.page_source
+        soup = bs(html, 'html.parser')
+
+        profile_info = {
+            'Name': soup.find('h1', attrs={'class': 'listuser-header__name'}).text if soup.find('h1', attrs={'class': 'listuser-header__name'}) else 'None',
+            'Money': soup.find('div', attrs={'class': 'profile-info__item-value'}).text if soup.find('div', attrs={'class': 'profile-info__item-value'}) else 'None',
+            'Title': soup.find('div', attrs={'class': 'listuser-header__headline--title'}).text if soup.find('div', attrs={'class': 'listuser-header__headline--title'}) else 'None',
+            'Description': soup.find('div', attrs={'class': 'listuser-alternative-bio__container'}).text if soup.find('div', attrs={'class': 'listuser-alternative-bio__container'}) else 'None',
+            'Age': None,
+            'Source of Wealth': None,
+            'Residence': None,
+            'Citizenship': None,
+            'Marital Status': None,
+            'Children': None,
+            'Education': None
+        }
+
+        for item in soup.find_all('dl', class_='listuser-block__item'):
+            title = item.find('dt', class_='profile-stats__title').text.strip()
+            value = item.find('dd', class_='profile-stats__text').text.strip() if item.find('dd', class_='profile-stats__text') else 'None'
+            if title in profile_info:
+                profile_info[title] = value
+
+        profiles_data.append(profile_info)
+
+    except (NoSuchElementException, ElementClickInterceptedException):
+        print("No more 'NEXT' buttons found or click intercepted, exiting the loop.")
+        break
+
+# Convert the profiles_data list to a DataFrame
+df = pd.DataFrame(profiles_data)
+
+# Save the DataFrame as a CSV file
+csv_file_name = "billionaires_data.csv"
+df.to_csv(csv_file_name, index=False)
+
+driver.quit()
+print("Scraping complete. Data saved locally.")
