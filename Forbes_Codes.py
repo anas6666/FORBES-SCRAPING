@@ -12,6 +12,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium import webdriver
+
+
 
 # Set up Chrome options for headless mode
 options = Options()
@@ -20,7 +24,7 @@ options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 
 # Initialize WebDriver with headless options
-driver = webdriver.Chrome(options=options)
+driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
 url = 'https://www.forbes.com/billionaires/'
 driver.get(url)
 
