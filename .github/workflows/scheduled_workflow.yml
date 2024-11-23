@@ -25,7 +25,7 @@ jobs:
       - name: Run scraping script
         run: |
           ls -R
-          python Forbes_Code.py
+          python Forbes-Code/Forbes_Code.py
 
       - name: Check if CSV exists
         run: |
