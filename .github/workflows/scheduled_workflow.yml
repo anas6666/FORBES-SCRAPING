@@ -2,45 +2,35 @@ name: Scrape and Upload to S3
 
 on:
   schedule:
-   # - cron:  '0 0 * * 0'  # Run every Sunday at midnight UTC
-    - cron:  '15 15 * * 6'
-
+    - cron: '15 15 * * 6' # Run every Saturday at 15:15 UTC
+  workflow_dispatch: # For manual triggers
 
 jobs:
   scrape_and_upload:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
 
-
-      # Step 2: Set up Python environment
       - name: Set up Python 3.9
         uses: actions/setup-python@v3
         with:
           python-version: '3.9'
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      # Step 4: Run the Python script to scrape and create CSV
       - name: Run scraping script
         run: python Forbes-Code.py
 
-      # Step 5: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_FORBES }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_FORBES }}
-          aws-region: us-east-1  # Change to your region
+          aws-region: us-east-1
 
-      # Step 6: Upload the CSV file to AWS S3
       - name: Upload CSV to S3
-        run: |
-          aws s3 cp billionaires_data.csv s3://forbesrawdata/ForbesData.csv
-
+        run: aws s3 cp billionaires_data.csv s3://forbesrawdata/ForbesData.csv
