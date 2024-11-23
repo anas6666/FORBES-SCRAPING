@@ -23,7 +23,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run scraping script
-        run: python Forbes-Code/Forbes_Code.py
+        run: |
+          ls -R
+          python Forbes_Code.py
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
