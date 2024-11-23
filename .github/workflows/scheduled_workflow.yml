@@ -2,7 +2,7 @@ name: Scrape and Upload to S3
 
 on:
   schedule:
-    - cron: '0 0 * * 1' # Run every Saturday at 15:15 UTC
+    - cron: '15 15 * * 6' # Run every Saturday at 15:15 UTC
   workflow_dispatch: # For manual triggers
 
 jobs:
@@ -25,7 +25,14 @@ jobs:
       - name: Run scraping script
         run: |
           ls -R
-          python Forbes-Code/Forbes_Code.py
+          python Forbes_Code.py
+
+      - name: Check if CSV exists
+        run: |
+          if [ ! -f billionaires_data.csv ]; then
+            echo "CSV file not found!"
+            exit 1
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
