@@ -2,7 +2,7 @@ name: Scrape and Upload to S3
 
 on:
   schedule:
-    - cron: '15 15 * * 6' # Run every Saturday at 15:15 UTC
+    - cron: '0 0 * * 1' # Run every Saturday at 15:15 UTC
   workflow_dispatch: # For manual triggers
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run scraping script
-        run: python Forbes-Code/Forbes-Code.py
+        run: python Forbes-Code/Forbes_Code.py
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
