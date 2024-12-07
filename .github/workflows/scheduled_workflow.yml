@@ -23,9 +23,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run scraping script
-        run: |
-          ls -R
-          python Forbes_Codes.py
+        run: python Forbes_Codes.py
 
       - name: Check if JSON exists
         run: |
@@ -42,4 +40,4 @@ jobs:
           aws-region: us-east-1
 
       - name: Upload JSON to S3
-        run: aws s3 cp billionaires_data.json s3://forbesrawdata/ForbesData.json
+        run: aws s3 cp billionaires_data.json s3://rawdatabillionnaire/billionaires_data.json
