@@ -1,100 +1,33 @@
-import pandas as pd
-import numpy as np
+%%time 
+
 import requests
-import re
-from bs4 import BeautifulSoup as bs
-import time
-from selenium import webdriver
-from datetime import datetime 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium import webdriver
+import json
+import os
+import boto3
 
+# URL of the JSON data
+url = 'https://www.forbes.com/billionaires/page-data/index/page-data.json'
+r = requests.get(url)
+data = r.json()  
 
+# Save the JSON data to a local file
+local_file = 'billionaires_data.json'
+with open(local_file, 'w') as json_file:
+    json.dump(data, json_file)
 
+print("JSON data saved successfully!")
 
+# Set AWS credentials (use environment variables or a credential file in production)
+os.environ['AWS_ACCESS_KEY_ID'] = 'YOUR_AWS_ACCESS_KEY'
+os.environ['AWS_SECRET_ACCESS_KEY'] = 'YOUR_AWS_SECRET_KEY'
 
-# Set up Chrome options for headless mode
-options = Options()
-options.add_argument("--headless")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
+# Connect to S3
+s3 = boto3.client('s3')
 
-# Initialize WebDriver with headless options
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+# Upload the JSON file to S3
+bucket_name = 'rawdatabillionnaire'  # Replace with your bucket name
+s3_key = 'billionaires_data.json'  # The name you want to give the file in S3
 
-url = 'https://www.forbes.com/billionaires/'
-driver.get(url)
+s3.upload_file(local_file, bucket_name, s3_key)
 
-time.sleep(5)  # Allow time for the page to load
-
-try:
-    first_cell = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, 'FULL PROFILE'))
-    )
-    first_cell.click()
-except NoSuchElementException:
-    print("FULL PROFILE button not found.")
-    driver.quit()
-
-driver.switch_to.window(driver.window_handles[-1])
-
-profiles_data = []
-
-# Set a counter for the number of times to click "NEXT"
-max_clicks = 10
-click_count = 0
-
-while click_count < max_clicks:
-    try:
-        nextt = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, 'NEXT'))
-        )
-        nextt.click()
-        
-        click_count += 1
-        time.sleep(2)  # Adjust based on page load speed
-        
-        html = driver.page_source
-        soup = bs(html, 'html.parser')
-
-        profile_info = {
-            'Name': soup.find('h1', attrs={'class': 'listuser-header__name'}).text if soup.find('h1', attrs={'class': 'listuser-header__name'}) else 'None',
-            'Money': soup.find('div', attrs={'class': 'profile-info__item-value'}).text if soup.find('div', attrs={'class': 'profile-info__item-value'}) else 'None',
-            'Title': soup.find('div', attrs={'class': 'listuser-header__headline--title'}).text if soup.find('div', attrs={'class': 'listuser-header__headline--title'}) else 'None',
-            'Description': soup.find('div', attrs={'class': 'listuser-alternative-bio__container'}).text if soup.find('div', attrs={'class': 'listuser-alternative-bio__container'}) else 'None',
-            'Age': None,
-            'Source of Wealth': None,
-            'Residence': None,
-            'Citizenship': None,
-            'Marital Status': None,
-            'Children': None,
-            'Education': None
-        }
-
-        for item in soup.find_all('dl', class_='listuser-block__item'):
-            title = item.find('dt', class_='profile-stats__title').text.strip()
-            value = item.find('dd', class_='profile-stats__text').text.strip() if item.find('dd', class_='profile-stats__text') else 'None'
-            if title in profile_info:
-                profile_info[title] = value
-
-        profiles_data.append(profile_info)
-
-    except (NoSuchElementException, ElementClickInterceptedException):
-        print("No more 'NEXT' buttons found or click intercepted, exiting the loop.")
-        break
-
-# Convert the profiles_data list to a DataFrame
-df = pd.DataFrame(profiles_data)
-
-# Save the DataFrame as a CSV file
-csv_file_name = "billionaires_data.csv"
-df.to_csv(csv_file_name, index=False)
-
-driver.quit()
-print("Scraping complete. Data saved locally.")
+print(f"JSON data uploaded to S3 bucket '{bucket_name}' with key '{s3_key}'.")
