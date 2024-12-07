@@ -2,7 +2,7 @@ name: Scrape and Upload to S3
 
 on:
   schedule:
-    - cron: '15 15 * * 6' # Run every Saturday at 15:15 UTC
+    - cron: '0 0 * * 1' # Every Monday at 00:00
   workflow_dispatch: # For manual triggers
 
 jobs:
