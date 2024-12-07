@@ -17,10 +17,6 @@ with open(local_file, 'w') as json_file:
 
 print("JSON data saved successfully!")
 
-# Set AWS credentials (use environment variables or a credential file in production)
-os.environ['AWS_ACCESS_KEY_ID'] = 'YOUR_AWS_ACCESS_KEY'
-os.environ['AWS_SECRET_ACCESS_KEY'] = 'YOUR_AWS_SECRET_KEY'
-
 # Connect to S3
 s3 = boto3.client('s3')
 
