@@ -1,6 +1,5 @@
 import requests
 import json
-import os
 import boto3
 
 # URL of the JSON data
